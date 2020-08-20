@@ -2,20 +2,17 @@ package com.iamtodor;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
-public class Producer {
+public class ProducerComponent {
 
     public static final String TOPIC = "twitter.raw_tweets";
-    public static Logger logger = LoggerFactory.getLogger(Producer.class.getName());
 
-    private KafkaProducer<String, String> createKafkaProducer() {
+    KafkaProducer<String, String> createKafkaProducer() {
         Properties properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -33,22 +30,5 @@ public class Producer {
         properties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, "5000");
 
         return new KafkaProducer<>(properties);
-    }
-
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        Producer producer = new Producer();
-        KafkaProducer<String, String> kafkaProducer = producer.createKafkaProducer();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                logger.info("stopping app");
-//                twitterClient.stop();
-                kafkaProducer.close();
-            }
-        }));
-
-        TwitterClient twitterClient = new TwitterClient();
-        twitterClient.processTweets(kafkaProducer);
     }
 }
