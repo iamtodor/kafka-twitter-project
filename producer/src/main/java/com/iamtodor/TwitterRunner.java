@@ -42,7 +42,6 @@ public class TwitterRunner {
         Authentication hosebirdAuth = new OAuth1(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
         ClientBuilder builder = new ClientBuilder()
-                .name("Hosebird-Client-01")                              // optional: mainly for the logs
                 .hosts(hosebirdHosts)
                 .authentication(hosebirdAuth)
                 .endpoint(hosebirdEndpoint)
@@ -63,6 +62,11 @@ public class TwitterRunner {
                     logger.info(tweet);
                     String authorId = Utils.extractAuthorIdFromTweet(tweet);
 
+                    if (authorId.equals("")) {
+                        logger.warn("skipping bad data");
+                        continue;
+                    }
+
                     ProducerRecord<String, String> producerRecord = new ProducerRecord<>(TOPIC, authorId, tweet);
                     producer.send(producerRecord, (metadata, exception) -> {
                         if (exception != null) {
@@ -74,8 +78,6 @@ public class TwitterRunner {
                 logger.error(e.toString());
                 producer.close();
                 client.stop();
-            } catch (NullPointerException e) {
-                logger.warn("skipping bad data: ");
             }
         }
     }

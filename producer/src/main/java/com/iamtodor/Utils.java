@@ -19,7 +19,7 @@ public class Utils {
                     .getAsJsonObject()
                     .get("id_str")
                     .getAsString();
-        } catch (JsonSyntaxException e) {
+        } catch (NullPointerException | IllegalStateException e) {
             logger.error(e.toString());
         }
         return userId;
