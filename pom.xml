@@ -25,6 +25,7 @@
     </build>
     <modules>
         <module>producer</module>
+        <module>es_consumer</module>
     </modules>
 
 </project>
