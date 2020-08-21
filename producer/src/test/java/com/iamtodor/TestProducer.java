@@ -5,7 +5,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -17,7 +16,7 @@ import static org.junit.Assert.*;
 public class TestProducer {
 
     @Test
-    public void testProducer() throws ExecutionException, InterruptedException, TimeoutException, IOException {
+    public void testProducer() throws ExecutionException, InterruptedException, TimeoutException {
         String data = loadJsonRecord();
 
         ProducerComponent producerComponent = new ProducerComponent();
