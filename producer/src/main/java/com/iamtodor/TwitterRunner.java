@@ -28,7 +28,7 @@ public class TwitterRunner {
     public static final String ACCESS_TOKEN_SECRET = "0a1cWzFsajOwHk41MoYtckHvog4fqlogVW4X2BdxDC1gd";
     public static final String CONSUMER_KEY = "ZKoDH5Jjq11LTUMHXofKrbXjI";
     public static final String CONSUMER_SECRET = "wINZGs9f3Bgmv8Ep9r3Myr1zwD42nabhMxT7mFNhU0qNy267HH";
-    private static final List<String> TWITTER_TERMS = Arrays.asList("bitcoin", "usa", "politics", "sport", "soccer", "trump");
+    private static final List<String> TWITTER_TERMS = Arrays.asList("trump");
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterRunner.class.getName());
 
