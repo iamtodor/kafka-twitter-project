@@ -50,29 +50,30 @@ public class ElasticSearchClient {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
             if (records.count() > 0) {
-                BulkRequest bulkRequest = new BulkRequest();
-
-                for (ConsumerRecord<String, String> record : records) {
-                    String tweet = record.value();
-                    logger.info(tweet);
-
-                    String tweetId = Utils.extractTweetIdFromTweet(tweet);
-
-                    if (tweetId.equals("")) {
-                        logger.warn("skipping bad data");
-                        continue;
-                    }
-
-                    IndexRequest indexRequest = new IndexRequest("twitter").source(record.value(), XContentType.JSON);
-                    indexRequest.id(tweetId);
-                    bulkRequest.add(indexRequest);
-                }
-
+                BulkRequest bulkRequest = getBulkRequest(records);
                 BulkResponse responses = restClient.bulk(bulkRequest, RequestOptions.DEFAULT);
                 consumer.commitSync();
             }
-
         }
+    }
+
+    protected BulkRequest getBulkRequest(ConsumerRecords<String, String> records) {
+        BulkRequest bulkRequest = new BulkRequest();
+
+        for (ConsumerRecord<String, String> record : records) {
+            String tweet = record.value();
+            String tweetId = Utils.extractTweetIdFromTweet(tweet);
+
+            if (tweetId.equals("")) {
+                logger.warn("skipping bad data");
+                continue;
+            }
+
+            IndexRequest indexRequest = new IndexRequest("twitter").source(tweet, XContentType.JSON);
+            indexRequest.id(tweetId);
+            bulkRequest.add(indexRequest);
+        }
+        return bulkRequest;
     }
 
 }

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class TestDataUtils {
+public class DataUtils {
 
     public static final String EXPECTED_USER_ID = "16259258";
 
