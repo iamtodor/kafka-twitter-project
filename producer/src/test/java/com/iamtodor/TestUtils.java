@@ -2,8 +2,8 @@ package com.iamtodor;
 
 import org.junit.Test;
 
-import static com.iamtodor.TestDataUtils.EXPECTED_USER_ID;
-import static com.iamtodor.TestDataUtils.loadJsonRecord;
+import static com.iamtodor.MockedDataUtils.EXPECTED_USER_ID;
+import static com.iamtodor.MockedDataUtils.loadJsonRecord;
 import static org.junit.Assert.assertEquals;
 
 public class TestUtils {
