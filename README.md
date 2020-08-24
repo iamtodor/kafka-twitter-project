@@ -17,3 +17,6 @@ It has the following modules:
 - kafka connect twitter
 - vanilla elastic search consumer
 - kafka connect sink elasticsearch 
+
+Notes:
+* to run es_consumer_connector be sure to add guava.jar to classpath
