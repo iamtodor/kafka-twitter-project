@@ -29,6 +29,7 @@ public class ElasticSearchClient {
     private static final String hostname = "kafka-course-4367221963.us-east-1.bonsaisearch.net";
     private static final String username = "pdr22x15j4";
     private static final String password = "wvb3g8c4xk";
+    private static final String ES_INDEX_TWITTER = "twitter";
 
     public RestHighLevelClient createRestClient() {
         CredentialsProvider provider = new BasicCredentialsProvider();
@@ -69,7 +70,7 @@ public class ElasticSearchClient {
                 continue;
             }
 
-            IndexRequest indexRequest = new IndexRequest("twitter").source(tweet, XContentType.JSON);
+            IndexRequest indexRequest = new IndexRequest(ES_INDEX_TWITTER).source(tweet, XContentType.JSON);
             indexRequest.id(tweetId);
             bulkRequest.add(indexRequest);
         }
