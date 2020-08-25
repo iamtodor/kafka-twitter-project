@@ -14,7 +14,6 @@ import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.slf4j.Logger;
@@ -23,12 +22,16 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Properties;
 
-public class Consumer {
+public class TwitterAggregator {
 
-    static Logger logger = LoggerFactory.getLogger(Consumer.class.getName());
+    public static final String TWITTER_RAW_TWEETS = "twitter.raw_tweets";
+    public static final String TWITTER_IMPORTANT_TWEETS = "twitter.important_tweets";
+    public static final String TWITTER_WORD_COUNT = "twitter.word_count";
+    public static final String TWITTER_AUTHOR_TWEETS_COUNT = "twitter.author_tweets_count";
+    static Logger logger = LoggerFactory.getLogger(TwitterAggregator.class.getName());
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer();
+        TwitterAggregator twitterAggregator = new TwitterAggregator();
 
         Serializer<JsonNode> jsonSerializer = new JsonSerializer();
         Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
@@ -36,25 +39,39 @@ public class Consumer {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String, JsonNode> tweetStream = builder.stream("twitter.raw_tweets",
+        KStream<String, JsonNode> tweetStream = builder.stream(TWITTER_RAW_TWEETS,
                 Consumed.with(Serdes.String(), jsonNodeSerde));
 
-        KStream<String, JsonNode> tweetsFromInfluencers = tweetStream.filter((key, jsonNode) ->
-                jsonNode.get("user").get("followers_count").asInt() > 500);
+        KStream<String, JsonNode> tweetsFromInfluencers = twitterAggregator.filterTweetsFromInfluencers(tweetStream, jsonNodeSerde);
 
-        tweetsFromInfluencers.to("twitter.important_tweets", Produced.with(Serdes.String(), jsonNodeSerde));
+        twitterAggregator.countWordsInTweet(tweetsFromInfluencers);
+        twitterAggregator.countTweetsFromAuthor(tweetsFromInfluencers, jsonNodeSerde);
 
-        consumer.countWordsInTweet(tweetsFromInfluencers);
-        consumer.countTweetsFromAuthor(jsonNodeSerde, tweetsFromInfluencers);
-
-        Topology topology = builder.build();
-        KafkaStreams streams = new KafkaStreams(topology, consumer.getProperties());
+        KafkaStreams streams = new KafkaStreams(builder.build(), twitterAggregator.getProperties());
         streams.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
-    private void countTweetsFromAuthor(Serde<JsonNode> jsonNodeSerde, KStream<String, JsonNode> tweetsFromInfluencers) {
+    private KStream<String, JsonNode> filterTweetsFromInfluencers(KStream<String, JsonNode> tweetStream,
+                                                                  Serde<JsonNode> jsonNodeSerde) {
+        KStream<String, JsonNode> tweetsFromInfluencers = tweetStream.filter((key, jsonNode) ->
+                jsonNode.get("user").get("followers_count").asInt() > 500);
+
+        tweetsFromInfluencers.to(TWITTER_IMPORTANT_TWEETS, Produced.with(Serdes.String(), jsonNodeSerde));
+        return tweetsFromInfluencers;
+    }
+
+    private void countWordsInTweet(KStream<String, JsonNode> tweetsFromInfluencers) {
+        KStream<String, String> wordCountInTweet = tweetsFromInfluencers.mapValues(value -> {
+            String loweredTweet = value.get("text").asText().toLowerCase();
+            return String.valueOf(Arrays.asList(loweredTweet.split("\\W+")).size());
+        });
+
+        wordCountInTweet.to(TWITTER_WORD_COUNT, Produced.with(Serdes.String(), Serdes.String()));
+    }
+
+    private void countTweetsFromAuthor(KStream<String, JsonNode> tweetsFromInfluencers, Serde<JsonNode> jsonNodeSerde) {
         ObjectNode initialCount = JsonNodeFactory.instance.objectNode();
         initialCount.put("count", 0);
 
@@ -68,23 +85,14 @@ public class Consumer {
                                 .withValueSerde(jsonNodeSerde)
                 );
 
-        authorTweetsCount.toStream().to("twitter.author_tweets_count", Produced.with(Serdes.String(), jsonNodeSerde));
+        authorTweetsCount.toStream().to(TWITTER_AUTHOR_TWEETS_COUNT, Produced.with(Serdes.String(), jsonNodeSerde));
     }
 
-    private static JsonNode newCount(JsonNode tweet, JsonNode currentState) {
+    private JsonNode newCount(JsonNode tweet, JsonNode currentState) {
         ObjectNode newState = JsonNodeFactory.instance.objectNode();
         newState.put("count", currentState.get("count").asInt() + 1);
         newState.put("author_id", tweet.get("id_str").asText());
         return newState;
-    }
-
-    private void countWordsInTweet(KStream<String, JsonNode> tweetsFromInfluencers) {
-        KStream<String, String> wordCountInTweet = tweetsFromInfluencers.mapValues(value -> {
-            String loweredTweet = value.get("text").asText().toLowerCase();
-            return String.valueOf(Arrays.asList(loweredTweet.split("\\W+")).size());
-        });
-
-        wordCountInTweet.to("twitter.test_word_count", Produced.with(Serdes.String(), Serdes.String()));
     }
 
     private Properties getProperties() {
