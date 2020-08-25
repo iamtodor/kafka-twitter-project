@@ -37,12 +37,7 @@ public class ElasticSearchClient {
 
         RestClientBuilder builder = RestClient.builder(
                 new HttpHost(hostname, 443, "https"))
-                .setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
-                    @Override
-                    public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpAsyncClientBuilder) {
-                        return httpAsyncClientBuilder.setDefaultCredentialsProvider(provider);
-                    }
-                });
+                .setHttpClientConfigCallback(httpAsyncClientBuilder -> httpAsyncClientBuilder.setDefaultCredentialsProvider(provider));
         return new RestHighLevelClient(builder);
     }
 
