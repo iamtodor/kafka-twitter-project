@@ -16,7 +16,11 @@ It has the following modules:
 - vanilla twitter producer
 - kafka connect twitter
 - vanilla elastic search consumer
-- kafka connect sink elasticsearch 
+- kafka connect sink elasticsearch
+- kstreams: 
+    - it filters data by user_followers
+    - it counts words in every tweet
+    - it counts total tweets by terms from a certain author
 
 Notes:
 * to run es_consumer_connector be sure to add guava.jar to classpath

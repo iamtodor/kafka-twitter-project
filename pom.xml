@@ -26,6 +26,7 @@
     <modules>
         <module>producer</module>
         <module>es_consumer</module>
+        <module>kstreams</module>
     </modules>
 
 </project>
