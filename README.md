@@ -28,6 +28,8 @@
     
 ### Vanilla producer and consumer are tested. 
 
+### I left twitter API keys deliberately to easy clone and reproduce. To make it work follow HOWTO.md file
+
 ### Notes:
 * to run es_consumer_connector be sure to add guava.jar to classpath
 
